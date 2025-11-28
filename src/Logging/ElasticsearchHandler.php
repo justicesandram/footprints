@@ -25,7 +25,7 @@ final class ElasticsearchHandler extends BaseHandler
             parent::bulkSend($records);
 
         } catch (Throwable $e) {
-            Log::channel('daily')
+            Log::channel('emergency')
                 ->warning('Elasticsearch logging failed: ' . $e->getMessage(), [
                     'exception' => $e,
                 ]);
