@@ -3,27 +3,26 @@
 namespace TNM\Footprints\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Routing\Router;
+use TNM\Footprints\Http\Middleware\CaptureFootprints;
 
 class FootprintServiceProvider extends ServiceProvider
 {
-    public function register()
+    public function boot(Router $router): void
     {
-        //
+        $this->publishes([
+            __DIR__ . '/../config/footprints.php' => config_path('footprints.php'),
+        ], 'footprints-config');
+
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+
+        $router->aliasMiddleware('footprints', CaptureFootprints::class);
     }
 
-    public function boot()
+    public function register(): void
     {
-        if ($this->app->runningInConsole()) {
-            if (!class_exists('CreateFootprintsTable')) {
-                $this->publishes([
-                    __DIR__ . '/../../database/migrations/create_footprints_table.php' => database_path('migrations/' . date('Y_m_d_His', time()) . '_create_footprints_table.php'),
-                ], 'migrations');
-            }
-
-            $this->publishes([
-                __DIR__ . '/../config/config.php' => config_path('footprints.php'),
-            ], 'config');
-
-        }
+        $this->mergeConfigFrom(
+            __DIR__ . '/../config/footprints.php', 'footprints'
+        );
     }
 }
