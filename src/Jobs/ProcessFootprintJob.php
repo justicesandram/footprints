@@ -176,10 +176,15 @@ class ProcessFootprintJob implements ShouldQueue
             throw new \Exception("Elasticsearch document ID generation failed: " . $e->getMessage());
         }
 
+        $body = $this->footprint;
+        $body['@timestamp'] = isset($this->footprint['requested_at'])
+            ? date('c', strtotime($this->footprint['requested_at']))
+            : gmdate('c');
+
         $params = [
             'index' => $config['index'],
             'id' => $documentId,
-            'body' => $this->footprint
+            'body' => $body
         ];
 
         if ($operationType === 'create') {
