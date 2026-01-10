@@ -78,6 +78,10 @@ final class CaptureFootprintsMiddleware
     protected function maskInputs(array $data): array
     {
         $masks = config('footprints.mask_fields', []);
+        if (is_string($masks)) {
+            $masks = explode(',', $masks);
+        }
+
         foreach ($data as $key => $value) {
             if (in_array($key, $masks)) {
                 $data[$key] = '<redacted>';

@@ -1,0 +1,162 @@
+# Footprints 👣
+
+A robust, asynchronous request/response logging package for Laravel applications. Capture detailed "footprints" of every interaction with your API or web application without impacting performance.
+
+## 🚀 Features
+
+- **Asynchronous Processing:** Uses Laravel Jobs to offload logging, ensuring zero latency impact on user requests.
+- **Multiple Channels:** Log to Database, File, Kafka, or Elasticsearch.
+- **Sensitive Data Masking:** Automatically redact passwords, credit cards, and other sensitive fields.
+- **Request ID Tracking:** Generates and propagates unique `X-Request-ID` headers for tracing across microservices.
+- **Safe Handling:** Gracefully handles binary responses, file uploads, and encoding errors.
+- **Zero-Crash Policy:** Built-in safeguards ensure logging failures never bring down your application.
+
+---
+
+## 📦 Installation
+
+1. **Install via Composer:**
+
+   ```bash
+   composer require tnmdev/footprints
+   ```
+
+2. **Publish Configuration & Migrations:**
+
+   ```bash
+   php artisan vendor:publish --tag=footprints-config
+   php artisan migrate
+   ```
+   *This will create the `footprints` table if you plan to use the database driver.*
+
+---
+
+## ⚙️ Configuration
+
+The package behavior is controlled via environment variables in your `.env` file.
+
+### Basic Setup
+
+```dotenv
+# Enable or Disable logging globally
+FOOTPRINTS_ENABLED=true
+
+# Service Name (useful for microservices)
+FOOTPRINT_SERVICE_NAME=my-laravel-app
+
+# Where to log? Options: database, file, kafka, elasticsearch
+# Comma-separated for multiple channels
+FOOTPRINTS_CHANNELS=database,file
+```
+
+### Sensitive Data Masking
+
+Define which fields should be redacted from the request body logs.
+
+```dotenv
+FOOTPRINTS_HIDDEN_FIELDS=password,password_confirmation,credit_card,api_key,secret,pin
+```
+
+### Queue Configuration
+
+Since logging happens in the background, configure which queue to use.
+
+```dotenv
+FOOTPRINTS_QUEUE_CONNECTION=database
+FOOTPRINTS_QUEUE_NAME=logging
+```
+
+### Driver Specific Configuration
+
+#### 🗄️ Database Driver
+Uses your default Laravel database connection by default.
+```dotenv
+DB_CONNECTION=mysql
+```
+
+#### 📂 File Driver
+Logs are written to `storage/logs/footprints.log`. No extra config needed.
+
+#### 📨 Kafka Driver
+Requires `ext-rdkafka`.
+```dotenv
+KAFKA_BROKERS=localhost:9092
+KAFKA_TOPIC=app_footprints
+KAFKA_CLIENT_ID=my-app-logger
+KAFKA_TIMEOUT_MS=1000
+```
+
+#### 🔍 Elasticsearch Driver
+```dotenv
+ELASTICSEARCH_HOSTS=localhost:9200
+ELASTICSEARCH_INDEX=footprints_logs
+```
+
+---
+
+## 🛠️ Usage
+
+To start capturing footprints, simply register the middleware.
+
+### Global Usage (All Routes)
+
+Add the middleware to the `web` or `api` middleware groups in `app/Http/Kernel.php` (Laravel 10-) or `bootstrap/app.php` (Laravel 11+).
+
+**Laravel 10 & below (app/Http/Kernel.php):**
+```php
+protected $middlewareGroups = [
+    'api' => [
+        // ...
+        \TNM\Footprints\Http\Middleware\CaptureFootprintsMiddleware::class,
+    ],
+];
+```
+
+**Laravel 11+ (bootstrap/app.php):**
+```php
+->withMiddleware(function (Middleware $middleware) {
+    $middleware->append(\TNM\Footprints\Http\Middleware\CaptureFootprintsMiddleware::class);
+})
+```
+
+### Route Specific Usage
+
+You can also apply it to specific routes:
+
+```php
+Route::middleware('footprints')->group(function () {
+    Route::post('/orders', [OrderController::class, 'store']);
+});
+```
+
+---
+
+## 📊 Data Structure
+
+The `footprints` table (or JSON object) contains:
+
+| Field | Description |
+|-------|-------------|
+| `request_id` | Unique UUID for the request (Header: `X-Request-ID`). |
+| `user_id` | Authenticated User ID (if any). |
+| `method` | HTTP Method (GET, POST, etc.). |
+| `uri` | The request path (e.g., `/api/users`). |
+| `ip_address` | Client IP. |
+| `status_code` | HTTP Response code (200, 404, 500). |
+| `duration_ms` | Execution time in milliseconds. |
+| `request_body` | JSON payload (sensitive fields redacted). |
+| `response_body` | Response content (truncated/handled if binary). |
+
+---
+
+## 🧪 Testing
+
+The package comes with a comprehensive test suite.
+
+```bash
+composer test
+```
+
+## 📝 License
+
+The MIT License (MIT). Please see [License File](LICENSE) for more information.
