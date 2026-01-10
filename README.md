@@ -75,6 +75,28 @@ FOOTPRINTS_QUEUE_CONNECTION=database
 FOOTPRINTS_QUEUE_NAME=logging
 ```
 
+**Important:** You must start a queue worker to process the logging jobs. Without a running queue worker, footprints will be queued but not processed.
+
+#### Starting the Queue Worker
+
+Start a queue worker using Laravel's queue command:
+
+```bash
+php artisan queue:work
+```
+
+For production, you should run the queue worker as a background process or use a process manager like Supervisor. 
+
+To specify the connection and queue name that match your configuration:
+
+```bash
+php artisan queue:work --connection=database --queue=logging
+```
+
+Replace `database` and `logging` with the values from your `.env` file (`FOOTPRINTS_QUEUE_CONNECTION` and `FOOTPRINTS_QUEUE_NAME`).
+
+**Note:** If you're using the `sync` queue connection for development/testing, jobs will run immediately without a queue worker, but this is not recommended for production as it will impact request performance.
+
 ### Driver Specific Configuration
 
 #### Database Driver
