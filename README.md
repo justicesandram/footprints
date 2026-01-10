@@ -88,6 +88,37 @@ ELASTICSEARCH_HOSTS=localhost:9200
 ELASTICSEARCH_INDEX=footprints_logs
 ```
 
+### Environment Variables Overview
+
+Here's a complete overview of all environment variables the package expects:
+
+```dotenv
+# Basic Configuration
+FOOTPRINTS_ENABLED=true
+FOOTPRINT_SERVICE_NAME=my-laravel-app
+FOOTPRINTS_CHANNELS=database,file
+
+# Sensitive Data Masking
+FOOTPRINTS_HIDDEN_FIELDS=password,password_confirmation,credit_card,api_key,secret,pin
+
+# Queue Configuration
+FOOTPRINTS_QUEUE_CONNECTION=database
+FOOTPRINTS_QUEUE_NAME=logging
+
+# Database Driver (if using database channel)
+DB_CONNECTION=mysql
+
+# Kafka Driver (if using kafka channel)
+KAFKA_BROKERS=localhost:9092
+KAFKA_TOPIC=app_footprints
+KAFKA_CLIENT_ID=my-app-logger
+KAFKA_TIMEOUT_MS=1000
+
+# Elasticsearch Driver (if using elasticsearch channel)
+ELASTICSEARCH_HOSTS=localhost:9200
+ELASTICSEARCH_INDEX=footprints_logs
+```
+
 ---
 
 ## Usage
