@@ -21,7 +21,7 @@ return new class extends Migration {
             $table->string('method');
             $table->string('uri');
             $table->string('endpoint');
-            $table->ipAddress();
+            $table->ipAddress('ip_address');
             $table->integer('status_code');
             $table->float('duration_ms');
             $table->boolean('success');
@@ -29,8 +29,6 @@ return new class extends Migration {
             $table->longText('response_body')->nullable();
             $table->json('request_headers')->nullable();
             $table->timestamp('requested_at');
-            $table->boolean('success');
-            $table->string('message')->nullable();
             $table->timestamps();
         });
     }

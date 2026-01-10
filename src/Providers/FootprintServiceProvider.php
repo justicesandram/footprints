@@ -4,7 +4,7 @@ namespace TNM\Footprints\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Routing\Router;
-use TNM\Footprints\Http\Middleware\CaptureFootprints;
+use TNM\Footprints\Http\Middleware\CaptureFootprintsMiddleware;
 
 class FootprintServiceProvider extends ServiceProvider
 {
@@ -16,7 +16,7 @@ class FootprintServiceProvider extends ServiceProvider
 
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
-        $router->aliasMiddleware('footprints', CaptureFootprints::class);
+        $router->aliasMiddleware('footprints', CaptureFootprintsMiddleware::class);
     }
 
     public function register(): void

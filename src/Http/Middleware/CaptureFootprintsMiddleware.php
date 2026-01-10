@@ -12,20 +12,26 @@ final class CaptureFootprintsMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!config('footprints.enabled', true)) {
-            return $next($request);
+        if (!defined('LARAVEL_START')) {
+            define('LARAVEL_START', microtime(true));
         }
 
-        if (!defined('LARAVEL_START'))
-            define('LARAVEL_START', microtime(true));
+        if (!$request->headers->has('X-Request-ID')) {
+            $requestId = (string)Str::uuid();
+            $request->headers->set('X-Request-ID', $requestId);
+        }
 
-        $requestId = (string)Str::uuid();
+        return $next($request);
+    }
 
-        $request->headers->set('X-Request-ID', $requestId);
-
-        $response = $next($request);
+    public function terminate(Request $request, $response): void
+    {
+        if (!config('footprints.enabled', true)) {
+            return;
+        }
 
         try {
+            $requestId = $request->headers->get('X-Request-ID');
             $data = $this->collectData($request, $response, $requestId);
 
             ProcessFootprintJob::dispatch($data)
@@ -35,8 +41,6 @@ final class CaptureFootprintsMiddleware
         } catch (\Throwable $e) {
             Log::error("Footprints Logging Error: " . $e->getMessage());
         }
-
-        return $response;
     }
 
     protected function collectData(Request $request, $response, $id): array
@@ -53,10 +57,22 @@ final class CaptureFootprintsMiddleware
             'success' => $response->isSuccessful(),
             'status_code' => $response->getStatusCode(),
             'requested_at' => date('Y-m-d H:i:s', (int)LARAVEL_START),
-            'request_body' => $this->maskInputs($request->all()),
+            'request_body' => $this->maskInputs($this->cleanInputs($request->all())),
             'response_body' => $this->getResponseContent($response),
-            "request_headers" =>1
+            "request_headers" => $request->headers->all()
         ];
+    }
+
+    protected function cleanInputs(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $data[$key] = $this->cleanInputs($value);
+            } elseif ($value instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
+                $data[$key] = "[File: " . $value->getClientOriginalName() . "]";
+            }
+        }
+        return $data;
     }
 
     protected function maskInputs(array $data): array

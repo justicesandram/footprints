@@ -10,6 +10,8 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use RdKafka\Conf;
+use RdKafka\Producer;
 
 class ProcessFootprintJob implements ShouldQueue
 {
@@ -27,7 +29,7 @@ class ProcessFootprintJob implements ShouldQueue
 
     private function fallback(string $reason): void
     {
-        Log::warning("[Footprint Package] Failed to log footptrint: {$reason}");
+        Log::warning("[Footprint Package] Failed to log footprint: {$reason}");
 
         $path = storage_path('logs/footprints.log');
         $entry = json_encode(['error' => $reason, 'footprint' => $this->footprint]) . PHP_EOL;
@@ -38,13 +40,16 @@ class ProcessFootprintJob implements ShouldQueue
     public function handle(): void
     {
         $channels = config('footprints.channels', []);
+        if (is_string($channels)) {
+            $channels = explode(',', $channels);
+        }
         $drivers = config('footprints.drivers');
 
         foreach ($channels as $channel) {
             try {
                 switch ($channel) {
-                    case 'footprintbase':
-                        $this->logToDatabase($drivers['footprintbase']);
+                    case 'database':
+                        $this->logToDatabase($drivers['database']);
                         break;
                     case 'file':
                         $this->logToFile($drivers['file']);
@@ -77,11 +82,11 @@ class ProcessFootprintJob implements ShouldQueue
                 'endpoint' => $this->footprint['endpoint'],
                 'ip_address' => $this->footprint['ip_address'],
                 'status_code' => $this->footprint['status_code'],
-                'duration_ms' => $this->footprint['milliseconds'],
+                'duration_ms' => $this->footprint['duration_ms'],
                 'success' => $this->footprint['success'],
-                'request_body' => json_encode($this->footprint['request_body']),
+                'request_body' => $this->safeJsonEncode($this->footprint['request_body']),
                 'response_body' => $this->footprint['response_body'],
-                'request_headers' => json_encode($this->footprint['response_body']),
+                'request_headers' => $this->safeJsonEncode($this->footprint['request_headers']),
                 'requested_at' => $this->footprint['requested_at'],
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -90,7 +95,7 @@ class ProcessFootprintJob implements ShouldQueue
 
     protected function logToFile(array $config)
     {
-        $logEntry = json_encode($this->footprint) . PHP_EOL;
+        $logEntry = $this->safeJsonEncode($this->footprint) . PHP_EOL;
 
         File::append($config['path'], $logEntry);
     }
@@ -111,7 +116,7 @@ class ProcessFootprintJob implements ShouldQueue
         $topic->produce(
             RD_KAFKA_PARTITION_UA,
             0,
-            json_encode($this->footprint, JSON_THROW_ON_ERROR)
+            $this->safeJsonEncode($this->footprint)
         );
 
         $producer->poll(0);
@@ -120,6 +125,15 @@ class ProcessFootprintJob implements ShouldQueue
         if ($result !== RD_KAFKA_RESP_ERR_NO_ERROR) {
             throw new \Exception("Kafka error code: {$result}");
         }
+    }
+
+    private function safeJsonEncode(mixed $value): string
+    {
+        $encoded = json_encode($value, JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR);
+        if ($encoded === false) {
+            return json_encode(['error' => 'JSON encoding failed', 'message' => json_last_error_msg()]);
+        }
+        return $encoded;
     }
 
     protected function logToElasticsearch(array $config): void
