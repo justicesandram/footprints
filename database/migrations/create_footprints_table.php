@@ -22,12 +22,12 @@ return new class extends Migration {
             $table->string('method');
             $table->string('uri');
             $table->string('endpoint');
-            $table->ipAddress('ip_address');
+            $table->ipAddress()->nullable();
             $table->integer('status_code');
             $table->float('duration_ms');
             $table->boolean('success');
-            $table->string('environment', 50);
-            $table->json('request_body')->nullable();
+            $table->string('environment', 50)->nullable();
+            $table->longText('request_body')->nullable();
             $table->longText('response_body')->nullable();
             $table->json('request_headers')->nullable();
             $table->timestamp('requested_at');
