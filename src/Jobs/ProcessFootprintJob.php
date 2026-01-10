@@ -2,6 +2,7 @@
 
 namespace TNM\Footprints\Jobs;
 
+use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -91,25 +92,27 @@ class ProcessFootprintJob implements ShouldQueue
             ]);
     }
 
-    protected function logToFile(array $config)
+    protected function logToFile(array $config): void
     {
         $logEntry = $this->safeJsonEncode($this->footprint) . PHP_EOL;
 
         File::append($config['path'], $logEntry);
     }
 
-    protected function logToKafka(array $config)
+    /**
+     * @throws Exception
+     */
+    protected function logToKafka(array $config): void
     {
         if (!extension_loaded('rdkafka') || !class_exists(\RdKafka\Producer::class)) {
-            throw new \Exception("RdKafka extension not installed or enabled.");
+            throw new Exception("RdKafka extension not installed or enabled.");
         }
 
         $conf = new \RdKafka\Conf();
         $conf->set('bootstrap.servers', $config['brokers']);
         $conf->set('socket.timeout.ms', (string)$config['timeout_ms']);
 
-        if (isset($config['sasl_mechanism'], $config['security_protocol'], $config['sasl_username'], $config['sasl_password']) &&
-            !empty($config['sasl_username']) && !empty($config['sasl_password'])) {
+        if (!empty($config['sasl_username']) && !empty($config['sasl_password'])) {
             $conf->set('sasl.mechanism', $config['sasl_mechanism']);
             $conf->set('security.protocol', $config['security_protocol']);
             $conf->set('sasl.username', $config['sasl_username']);
@@ -125,7 +128,7 @@ class ProcessFootprintJob implements ShouldQueue
             try {
                 $messageKey = IdKeyGenerator::generateMessageKey($this->footprint, $config['message_key']);
             } catch (\InvalidArgumentException $e) {
-                throw new \Exception("Kafka message key generation failed: " . $e->getMessage());
+                throw new Exception("Kafka message key generation failed: " . $e->getMessage());
             }
         }
 
@@ -133,14 +136,13 @@ class ProcessFootprintJob implements ShouldQueue
         $partition = RD_KAFKA_PARTITION_UA;
         $flags = 0;
 
-        // Produce message with optional key (pass null if no key)
         $topic->produce($partition, $flags, $messagePayload, $messageKey);
 
         $producer->poll(0);
         $result = $producer->flush(1000);
 
         if ($result !== RD_KAFKA_RESP_ERR_NO_ERROR) {
-            throw new \Exception("Kafka error code: {$result}");
+            throw new Exception("Kafka error code: {$result}");
         }
     }
 
@@ -153,10 +155,13 @@ class ProcessFootprintJob implements ShouldQueue
         return $encoded;
     }
 
+    /**
+     * @throws Exception
+     */
     protected function logToElasticsearch(array $config): void
     {
         if (!class_exists(\Elastic\Elasticsearch\ClientBuilder::class)) {
-            throw new \Exception("Elasticsearch client not installed.");
+            throw new Exception("Elasticsearch client not installed.");
         }
 
         $builder = \Elastic\Elasticsearch\ClientBuilder::create()
@@ -173,15 +178,16 @@ class ProcessFootprintJob implements ShouldQueue
 
         $operationType = $config['operation_type'] ?? 'index';
         if (!in_array($operationType, ['index', 'create'])) {
-            throw new \Exception("Invalid Elasticsearch operation type: {$operationType}. Must be 'index' or 'create'");
+            throw new Exception("Invalid Elasticsearch operation type: {$operationType}. Must be 'index' or 'create'");
         }
 
 
         $documentIdField = $config['document_id_field'] ?? 'request_id';
+
         try {
             $documentId = IdKeyGenerator::generateDocumentId($this->footprint, $documentIdField);
         } catch (\InvalidArgumentException $e) {
-            throw new \Exception("Elasticsearch document ID generation failed: " . $e->getMessage());
+            throw new Exception("Elasticsearch document ID generation failed: " . $e->getMessage());
         }
 
         $body = $this->footprint;

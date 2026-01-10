@@ -3,8 +3,10 @@
 namespace TNM\Footprints\Http\Middleware;
 
 use Closure;
-use Illuminate\Http\Request;
+use Throwable;
+use function defined;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use TNM\Footprints\Jobs\ProcessFootprintJob;
 
@@ -12,8 +14,8 @@ final class CaptureFootprintsMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!\defined('LARAVEL_START')) {
-            \define('LARAVEL_START', microtime(true));
+        if (!defined('LARAVEL_START')) {
+            define('LARAVEL_START', microtime(true));
         }
 
         if (!$request->headers->has('X-Request-ID')) {
@@ -38,7 +40,7 @@ final class CaptureFootprintsMiddleware
                 ->onConnection(config('footprints.queue.connection'))
                 ->onQueue(config('footprints.queue.name'));
 
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error("Footprints Logging Error: " . $e->getMessage());
         }
     }
@@ -60,7 +62,7 @@ final class CaptureFootprintsMiddleware
             'requested_at' => date('Y-m-d H:i:s', (int)LARAVEL_START),
             'request_body' => $this->maskInputs($this->cleanInputs($request->all())),
             'response_body' => $this->getResponseContent($response),
-            "request_headers" => $request->headers->all(),
+            "request_headers" => $this->maskInputs($request->headers->all()),
             "environment" => config('app.env'),
         ];
     }
@@ -83,9 +85,13 @@ final class CaptureFootprintsMiddleware
         if (is_string($masks)) {
             $masks = explode(',', $masks);
         }
+        
+        $masks = array_map(fn($m) => strtolower(trim($m)), $masks);
 
         foreach ($data as $key => $value) {
-            if (in_array($key, $masks)) {
+            $normalizedKey = strtolower(str_replace('-', '_', $key));
+            
+            if (in_array($normalizedKey, $masks)) {
                 $data[$key] = '<redacted>';
             } elseif (is_array($value)) {
                 $data[$key] = $this->maskInputs($value);

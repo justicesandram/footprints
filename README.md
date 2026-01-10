@@ -90,12 +90,20 @@ For production, you should run the queue worker as a background process or use a
 To specify the connection and queue name that match your configuration:
 
 ```bash
-php artisan queue:work
+php artisan queue:work database --queue=logging
+```
+
+Alternatively, for development, you can use `queue:listen` to reflect code changes immediately:
+
+```bash
+php artisan queue:listen database --queue=logging
 ```
 
 Replace `database` and `logging` with the values from your `.env` file (`FOOTPRINTS_QUEUE_CONNECTION` and `FOOTPRINTS_QUEUE_NAME`).
 
 **Note:** If you're using the `sync` queue connection for development/testing, jobs will run immediately without a queue worker, but this is not recommended for production as it will impact request performance.
+
+**Recommendation:** For high-volume APIs or web applications, it is highly recommended to use **Redis** or **RabbitMQ** as your queue connection. Using the `database` driver for queues in high-traffic scenarios can overwhelm your database with insert/delete operations for managing jobs, potentially degrading overall application performance.
 
 ### Driver Specific Configuration
 
@@ -123,7 +131,9 @@ FOOTPRINTS_FILE_MIN_FREE_SPACE_MB=100
 - Sufficient disk space is available
 
 Validation errors are logged as warnings but won't prevent the application from starting.
+### Kafka Driver
 
+```dotenv
 KAFKA_BROKERS=localhost:9092
 KAFKA_TOPIC=app_footprints
 KAFKA_CLIENT_ID=my-app-logger
@@ -133,7 +143,7 @@ KAFKA_SASL_MECHANISM=SCRAM-SHA-256
 KAFKA_SECURITY_PROTOCOL=SASL_SSL
 KAFKA_SASL_USERNAME=your-username
 KAFKA_SASL_PASSWORD=your-password
-
+```
 
 **Message Key Configuration:**
 - `KAFKA_MESSAGE_KEY`: Optional. Set to a field name (e.g., `request_id`) to use that field's value as the message key, or leave unset/null for no key.
