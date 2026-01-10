@@ -36,26 +36,26 @@ class FileChannelValidator
             }
             
             if (!is_dir($parentDir) || !is_writable($parentDir)) {
-                $errors[] = "Directory does not exist and cannot be created (parent not writable): {$directory}";
+                $errors[] = "Directory does not exist and cannot be created (parent not writable): $directory";
             } else {
 
                 if (!@mkdir($directory, 0755, true)) {
-                    $errors[] = "Failed to create directory: {$directory}";
+                    $errors[] = "Failed to create directory: $directory";
                 }
             }
         }
 
         if (is_dir($directory) && !is_writable($directory)) {
-            $errors[] = "Directory is not writable: {$directory}";
+            $errors[] = "Directory is not writable: $directory";
         }
 
         if (file_exists($filePath)) {
             if (!is_writable($filePath)) {
-                $errors[] = "Log file exists but is not writable: {$filePath}";
+                $errors[] = "Log file exists but is not writable: $filePath";
             }
         } else {
             if (!is_writable($directory)) {
-                $errors[] = "Cannot create log file: parent directory is not writable: {$directory}";
+                $errors[] = "Cannot create log file: parent directory is not writable: $directory";
             }
         }
 
@@ -101,7 +101,7 @@ class FileChannelValidator
     public function logErrors(array $errors): void
     {
         foreach ($errors as $error) {
-            Log::warning("[Footprints] File channel validation failed: {$error}");
+            Log::warning("[Footprints] File channel validation failed: $error");
         }
     }
 }
