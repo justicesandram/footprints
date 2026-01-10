@@ -32,7 +32,6 @@ class CaptureFootprintsMiddlewareTest extends TestCase
         $request = Request::create('/test-url', 'POST', ['foo' => 'bar']);
         $request->headers->set('X-Request-ID', 'test-uuid');
         
-        // Define LARAVEL_START if not defined
         if (!defined('LARAVEL_START')) {
             define('LARAVEL_START', microtime(true));
         }

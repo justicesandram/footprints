@@ -55,7 +55,6 @@ class ProcessFootprintJobTest extends TestCase
         
         $logPath = storage_path('logs/footprints.log');
         
-        // Ensure log file is clean
         if (File::exists($logPath)) {
             File::delete($logPath);
         }
@@ -81,12 +80,10 @@ class ProcessFootprintJobTest extends TestCase
         $job = new ProcessFootprintJob($this->footprintData);
         $job->handle();
 
-        // Check Database
         $this->assertDatabaseHas('footprints', [
             'request_id' => 'uuid-1234',
         ]);
 
-        // Check File
         $this->assertFileExists($logPath);
         $content = File::get($logPath);
         $this->assertStringContainsString('uuid-1234', $content);
