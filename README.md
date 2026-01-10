@@ -1,16 +1,13 @@
-# Footprints 👣
+# Footprints
 
 A robust, asynchronous request/response logging package for Laravel applications. Capture detailed "footprints" of every interaction with your API or web application without impacting performance.
 
-## 🚀 Features
+## Features
 
 - **Asynchronous Processing:** Uses Laravel Jobs to offload logging, ensuring zero latency impact on user requests.
 - **Multiple Channels:** Log to Database, File, Kafka, or Elasticsearch.
 - **Sensitive Data Masking:** Automatically redact passwords, credit cards, and other sensitive fields.
 - **Request ID Tracking:** Generates and propagates unique `X-Request-ID` headers for tracing across microservices.
-- **Safe Handling:** Gracefully handles binary responses, file uploads, and encoding errors.
-- **Zero-Crash Policy:** Built-in safeguards ensure logging failures never bring down your application.
-
 ---
 
 ## 📦 Installation
@@ -31,7 +28,7 @@ A robust, asynchronous request/response logging package for Laravel applications
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 The package behavior is controlled via environment variables in your `.env` file.
 
@@ -41,11 +38,10 @@ The package behavior is controlled via environment variables in your `.env` file
 # Enable or Disable logging globally
 FOOTPRINTS_ENABLED=true
 
-# Service Name (useful for microservices)
 FOOTPRINT_SERVICE_NAME=my-laravel-app
 
 # Where to log? Options: database, file, kafka, elasticsearch
-# Comma-separated for multiple channels
+# Comma-separated for multiple channels. Order matters here
 FOOTPRINTS_CHANNELS=database,file
 ```
 
@@ -68,17 +64,17 @@ FOOTPRINTS_QUEUE_NAME=logging
 
 ### Driver Specific Configuration
 
-#### 🗄️ Database Driver
+#### Database Driver
 Uses your default Laravel database connection by default.
 ```dotenv
 DB_CONNECTION=mysql
 ```
 
-#### 📂 File Driver
+#### File Driver
 Logs are written to `storage/logs/footprints.log`. No extra config needed.
 
-#### 📨 Kafka Driver
-Requires `ext-rdkafka`.
+#### Kafka Driver
+Requires the extension `ext-rdkafka`.
 ```dotenv
 KAFKA_BROKERS=localhost:9092
 KAFKA_TOPIC=app_footprints
@@ -86,7 +82,7 @@ KAFKA_CLIENT_ID=my-app-logger
 KAFKA_TIMEOUT_MS=1000
 ```
 
-#### 🔍 Elasticsearch Driver
+#### Elasticsearch Driver
 ```dotenv
 ELASTICSEARCH_HOSTS=localhost:9200
 ELASTICSEARCH_INDEX=footprints_logs
@@ -94,7 +90,7 @@ ELASTICSEARCH_INDEX=footprints_logs
 
 ---
 
-## 🛠️ Usage
+## Usage
 
 To start capturing footprints, simply register the middleware.
 
@@ -131,7 +127,7 @@ Route::middleware('footprints')->group(function () {
 
 ---
 
-## 📊 Data Structure
+## Data Structure
 
 The `footprints` table (or JSON object) contains:
 
@@ -149,7 +145,7 @@ The `footprints` table (or JSON object) contains:
 
 ---
 
-## 🧪 Testing
+## Testing
 
 The package comes with a comprehensive test suite.
 
@@ -157,6 +153,6 @@ The package comes with a comprehensive test suite.
 composer test
 ```
 
-## 📝 License
+## License
 
 The MIT License (MIT). Please see [License File](LICENSE) for more information.
