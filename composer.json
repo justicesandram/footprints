@@ -23,8 +23,10 @@
     "php": "^8.1",
     "illuminate/support": "^9.0|^10.0|^11.0|^12.0",
     "illuminate/queue": "^9.0|^10.0|^11.0|^12.0",
-    "ext-rdkafka": "*",
     "illuminate/routing": "^9.0|^10.0|^11.0|^12.0"
+  },
+  "suggest": {
+    "ext-rdkafka": "Required for Kafka logging channel"
   },
   "require-dev": {
     "orchestra/testbench": "^7.0|^8.0|^9.0|^10.0",

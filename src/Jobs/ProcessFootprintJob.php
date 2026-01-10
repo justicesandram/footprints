@@ -10,8 +10,6 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use RdKafka\Conf;
-use RdKafka\Producer;
 
 class ProcessFootprintJob implements ShouldQueue
 {
@@ -103,15 +101,15 @@ class ProcessFootprintJob implements ShouldQueue
 
     protected function logToKafka(array $config)
     {
-        if (!class_exists(\RdKafka\Producer::class)) {
+        if (!extension_loaded('rdkafka') || !class_exists(\RdKafka\Producer::class)) {
             throw new \Exception("RdKafka extension not installed or enabled.");
         }
 
-        $conf = new Conf();
+        $conf = new \RdKafka\Conf();
         $conf->set('metafootprint.broker.list', $config['brokers']);
         $conf->set('socket.timeout.ms', (string)$config['timeout_ms']);
 
-        $producer = new Producer($conf);
+        $producer = new \RdKafka\Producer($conf);
         $topic = $producer->newTopic($config['topic']);
 
         $topic->produce(

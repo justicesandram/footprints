@@ -34,7 +34,7 @@ return new class extends Migration {
         });
     }
 
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists(config('footprints.drivers.database.table_name', 'footprints'));
     }
