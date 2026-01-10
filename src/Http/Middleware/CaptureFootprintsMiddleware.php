@@ -59,7 +59,8 @@ final class CaptureFootprintsMiddleware
             'requested_at' => date('Y-m-d H:i:s', (int)LARAVEL_START),
             'request_body' => $this->maskInputs($this->cleanInputs($request->all())),
             'response_body' => $this->getResponseContent($response),
-            "request_headers" => $request->headers->all()
+            "request_headers" => $request->headers->all(),
+            "environment" => config('app.env'),
         ];
     }
 

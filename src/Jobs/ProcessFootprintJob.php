@@ -84,6 +84,7 @@ class ProcessFootprintJob implements ShouldQueue
                 'status_code' => $this->footprint['status_code'],
                 'duration_ms' => $this->footprint['duration_ms'],
                 'success' => $this->footprint['success'],
+                'environment' => $this->footprint['environment'],
                 'request_body' => $this->safeJsonEncode($this->footprint['request_body']),
                 'response_body' => $this->footprint['response_body'],
                 'request_headers' => $this->safeJsonEncode($this->footprint['request_headers']),

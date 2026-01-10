@@ -25,6 +25,7 @@ return new class extends Migration {
             $table->integer('status_code');
             $table->float('duration_ms');
             $table->boolean('success');
+            $table->string('environment', 50);
             $table->json('request_body')->nullable();
             $table->longText('response_body')->nullable();
             $table->json('request_headers')->nullable();
