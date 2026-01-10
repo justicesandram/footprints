@@ -7,6 +7,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Support\Facades\Event;
 use TNM\Footprints\Http\Middleware\CaptureFootprintsMiddleware;
+use TNM\Footprints\Validation\FileChannelValidator;
 
 class FootprintServiceProvider extends ServiceProvider
 {
@@ -51,6 +52,9 @@ class FootprintServiceProvider extends ServiceProvider
             $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
         }
 
+        // Validate file channel configuration if enabled
+        $this->validateFileChannel();
+
         $router->aliasMiddleware('footprints', CaptureFootprintsMiddleware::class);
     }
 
@@ -59,5 +63,35 @@ class FootprintServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__ . '/../config/footprints.php', 'footprints'
         );
+    }
+
+    /**
+     * Validate file channel configuration during service discovery
+     */
+    protected function validateFileChannel(): void
+    {
+        if (!config('footprints.enabled', true)) {
+            return;
+        }
+
+        $channels = config('footprints.channels', []);
+        if (is_string($channels)) {
+            $channels = explode(',', $channels);
+        }
+
+        if (!in_array('file', array_map('trim', $channels))) {
+            return;
+        }
+
+        $fileConfig = config('footprints.drivers.file', []);
+        $filePath = $fileConfig['path'] ?? storage_path('logs/footprints.log');
+        $minFreeSpaceMB = $fileConfig['min_free_space_mb'] ?? 100;
+
+        $validator = new FileChannelValidator($minFreeSpaceMB * 1048576);
+        $result = $validator->validate($filePath);
+
+        if (!$result['valid']) {
+            $validator->logErrors($result['errors']);
+        }
     }
 }

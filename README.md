@@ -1,6 +1,6 @@
 # Footprints
 
-A robust, asynchronous request/response logging package for Laravel applications. Capture detailed "footprints" of every interaction with your API or web application without impacting performance.
+An asynchronous request/response logging package for Laravel applications. Capture detailed "footprints" of every interaction with your API or web application without impacting performance.
 
 ## Features
 
@@ -90,7 +90,7 @@ For production, you should run the queue worker as a background process or use a
 To specify the connection and queue name that match your configuration:
 
 ```bash
-php artisan queue:work --connection=database --queue=logging
+php artisan queue:work
 ```
 
 Replace `database` and `logging` with the values from your `.env` file (`FOOTPRINTS_QUEUE_CONNECTION` and `FOOTPRINTS_QUEUE_NAME`).
@@ -107,7 +107,22 @@ FOOTPRINTS_TABLE_NAME=footprints
 ```
 
 #### File Driver
-Logs are written to `storage/logs/footprints.log`. No extra config needed.
+Logs are written to the specified file path. The directory will be created if it doesn't exist, and the package will validate file accessibility and disk space during service discovery.
+
+```dotenv
+FOOTPRINTS_FILE_PATH=/var/log/myapp/footprints.log
+FOOTPRINTS_FILE_MIN_FREE_SPACE_MB=100
+```
+
+- `FOOTPRINTS_FILE_PATH`: Full path to the log file (default: `storage/logs/footprints.log`)
+- `FOOTPRINTS_FILE_MIN_FREE_SPACE_MB`: Minimum free disk space required in MB (default: 100MB)
+
+**Note:** The package automatically validates:
+- Directory exists or can be created
+- Directory/file is writable
+- Sufficient disk space is available
+
+Validation errors are logged as warnings but won't prevent the application from starting.
 
 #### Kafka Driver
 Requires the extension `ext-rdkafka`.
@@ -144,6 +159,10 @@ FOOTPRINTS_QUEUE_NAME=logging
 # Database Driver (if using database channel)
 DB_CONNECTION=mysql
 FOOTPRINTS_TABLE_NAME=footprints
+
+# File Driver (if using file channel)
+FOOTPRINTS_FILE_PATH=/var/log/myapp/footprints.log
+FOOTPRINTS_FILE_MIN_FREE_SPACE_MB=100
 
 # Kafka Driver (if using kafka channel)
 KAFKA_BROKERS=localhost:9092

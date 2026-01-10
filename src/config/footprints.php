@@ -62,7 +62,8 @@ return [
     */
     'drivers' => [
         'file' => [
-            'path' => storage_path('logs/footprints.log'),
+            'path' => env('FOOTPRINTS_FILE_PATH', storage_path('logs/footprints.log')),
+            'min_free_space_mb' => env('FOOTPRINTS_FILE_MIN_FREE_SPACE_MB', 100),
         ],
 
         'database' => [
