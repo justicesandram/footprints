@@ -3,23 +3,21 @@
 namespace TNM\Footprints\Jobs;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\File;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
+use TNM\Footprints\Helpers\IdKeyGenerator;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
-use TNM\Footprints\Helpers\IdKeyGenerator;
 
 class ProcessFootprintJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
 
-    public function __construct(public array $footprint)
-    {
-    }
+    public function __construct(public array $footprint) {}
 
     public function failed(\Throwable $exception): void
     {
@@ -33,7 +31,6 @@ class ProcessFootprintJob implements ShouldQueue
         $path = storage_path('logs/footprints.log');
         $entry = json_encode(['error' => $reason, 'footprint' => $this->footprint]) . PHP_EOL;
         file_put_contents($path, $entry, FILE_APPEND);
-
     }
 
     public function handle(): void
@@ -171,8 +168,17 @@ class ProcessFootprintJob implements ShouldQueue
             throw new \Exception("Invalid Elasticsearch operation type: {$operationType}. Must be 'index' or 'create'");
         }
 
+
+        $documentIdField = $config['document_id_field'] ?? 'request_id';
+        try {
+            $documentId = IdKeyGenerator::generateDocumentId($this->footprint, $documentIdField);
+        } catch (\InvalidArgumentException $e) {
+            throw new \Exception("Elasticsearch document ID generation failed: " . $e->getMessage());
+        }
+
         $params = [
             'index' => $config['index'],
+            'id' => $documentId,
             'body' => $this->footprint
         ];
 
