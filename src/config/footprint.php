@@ -42,12 +42,7 @@ return [
     | Available drivers: 'file', 'database', 'kafka', 'elasticsearch'
     |
     */
-    'channels' => [
-        'file',
-        'database',
-        // 'elasticsearch',
-        // 'kafka'
-    ],
+    'channels' => env("FOOTPRINTS_CHANNELS", "file"),
 
     /*
     |--------------------------------------------------------------------------
@@ -57,14 +52,8 @@ return [
     | specific fields in the request body to hide.
     |
     */
-    'mask_fields' => [
-        'password',
-        'password_confirmation',
-        'new_pin',
-        'pin',
-        'credit_card',
-        'api_key'
-    ],
+    'mask_fields' => env("FOOTPRINTS_HIDDEN_FIELDS",
+        "password,password_confirmation,new_pin,pin,credit_card,api_key"),
 
     /*
     |--------------------------------------------------------------------------
@@ -85,6 +74,7 @@ return [
             'brokers' => env('KAFKA_BROKERS', 'localhost:9092'),
             'topic' => env('KAFKA_TOPIC', 'app_footprints'),
             'client_id' => env('KAFKA_CLIENT_ID', 'laravel_logger'),
+            'timeout_ms' => env('KAFKA_TIMEOUT_MS', 1000),
         ],
 
         'elasticsearch' => [

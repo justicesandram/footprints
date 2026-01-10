@@ -27,6 +27,7 @@ return new class extends Migration {
             $table->boolean('success');
             $table->json('request_body')->nullable();
             $table->longText('response_body')->nullable();
+            $table->json('request_headers')->nullable();
             $table->timestamp('requested_at');
             $table->boolean('success');
             $table->string('message')->nullable();

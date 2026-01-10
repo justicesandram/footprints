@@ -55,6 +55,7 @@ final class CaptureFootprintsMiddleware
             'requested_at' => date('Y-m-d H:i:s', (int)LARAVEL_START),
             'request_body' => $this->maskInputs($request->all()),
             'response_body' => $this->getResponseContent($response),
+            "request_headers" =>1
         ];
     }
 

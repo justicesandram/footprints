@@ -15,14 +15,27 @@ class ProcessFootprintJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $data;
 
-    public function __construct(array $data)
+    public function __construct(public array $footprint)
     {
-        $this->data = $data;
     }
 
-    public function handle()
+    public function failed(\Throwable $exception): void
+    {
+        $this->fallback($exception->getMessage());
+    }
+
+    private function fallback(string $reason): void
+    {
+        Log::warning("[Footprint Package] Failed to log footptrint: {$reason}");
+
+        $path = storage_path('logs/footprints.log');
+        $entry = json_encode(['error' => $reason, 'footprint' => $this->footprint]) . PHP_EOL;
+        file_put_contents($path, $entry, FILE_APPEND);
+
+    }
+
+    public function handle(): void
     {
         $channels = config('footprints.channels', []);
         $drivers = config('footprints.drivers');
@@ -30,8 +43,8 @@ class ProcessFootprintJob implements ShouldQueue
         foreach ($channels as $channel) {
             try {
                 switch ($channel) {
-                    case 'database':
-                        $this->logToDatabase($drivers['database']);
+                    case 'footprintbase':
+                        $this->logToDatabase($drivers['footprintbase']);
                         break;
                     case 'file':
                         $this->logToFile($drivers['file']);
@@ -56,19 +69,20 @@ class ProcessFootprintJob implements ShouldQueue
         DB::connection($config['connection'])
             ->table($config['table_name'])
             ->insert([
-                'request_id' => $this->data['request_id'],
-                'user_type' => $this->data['user_type'],
-                'user_id' => $this->data['user_id'],
-                'method' => $this->data['method'],
-                'uri' => $this->data['uri'],
-                'endpoint' => $this->data['endpoint'],
-                'ip_address' => $this->data['ip_address'],
-                'status_code' => $this->data['status_code'],
-                'duration_ms' => $this->data['milliseconds'],
-                'success' => $this->data['success'],
-                'request_body' => json_encode($this->data['request_body']),
-                'response_body' => $this->data['response_body'],
-                'requested_at' => $this->data['requested_at'],
+                'request_id' => $this->footprint['request_id'],
+                'user_type' => $this->footprint['user_type'],
+                'user_id' => $this->footprint['user_id'],
+                'method' => $this->footprint['method'],
+                'uri' => $this->footprint['uri'],
+                'endpoint' => $this->footprint['endpoint'],
+                'ip_address' => $this->footprint['ip_address'],
+                'status_code' => $this->footprint['status_code'],
+                'duration_ms' => $this->footprint['milliseconds'],
+                'success' => $this->footprint['success'],
+                'request_body' => json_encode($this->footprint['request_body']),
+                'response_body' => $this->footprint['response_body'],
+                'request_headers' => json_encode($this->footprint['response_body']),
+                'requested_at' => $this->footprint['requested_at'],
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -76,7 +90,7 @@ class ProcessFootprintJob implements ShouldQueue
 
     protected function logToFile(array $config)
     {
-        $logEntry = json_encode($this->data) . PHP_EOL;
+        $logEntry = json_encode($this->footprint) . PHP_EOL;
 
         File::append($config['path'], $logEntry);
     }
@@ -88,7 +102,7 @@ class ProcessFootprintJob implements ShouldQueue
         }
 
         $conf = new Conf();
-        $conf->set('metadata.broker.list', $config['brokers']);
+        $conf->set('metafootprint.broker.list', $config['brokers']);
         $conf->set('socket.timeout.ms', (string)$config['timeout_ms']);
 
         $producer = new Producer($conf);
@@ -120,7 +134,7 @@ class ProcessFootprintJob implements ShouldQueue
 
         $params = [
             'index' => $config['index'],
-            'body' => $this->data
+            'body' => $this->footprint
         ];
 
         $client->index($params);
