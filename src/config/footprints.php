@@ -66,7 +66,7 @@ return [
         ],
 
         'database' => [
-            'table_name' => 'footprints',
+            'table_name' => env('FOOTPRINTS_TABLE_NAME', 'footprints'),
             'connection' => env('DB_CONNECTION', 'mysql'),
         ],
 

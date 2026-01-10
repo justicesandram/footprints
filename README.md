@@ -10,7 +10,7 @@ A robust, asynchronous request/response logging package for Laravel applications
 - **Request ID Tracking:** Generates and propagates unique `X-Request-ID` headers for tracing across microservices.
 ---
 
-## 📦 Installation
+## Installation
 
 1. **Install via Composer:**
 
@@ -81,6 +81,7 @@ FOOTPRINTS_QUEUE_NAME=logging
 Uses your default Laravel database connection by default.
 ```dotenv
 DB_CONNECTION=mysql
+FOOTPRINTS_TABLE_NAME=footprints
 ```
 
 #### File Driver
@@ -120,6 +121,7 @@ FOOTPRINTS_QUEUE_NAME=logging
 
 # Database Driver (if using database channel)
 DB_CONNECTION=mysql
+FOOTPRINTS_TABLE_NAME=footprints
 
 # Kafka Driver (if using kafka channel)
 KAFKA_BROKERS=localhost:9092
