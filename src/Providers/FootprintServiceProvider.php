@@ -38,7 +38,18 @@ class FootprintServiceProvider extends ServiceProvider
             });
         }
 
-        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
+
+        $migrationsPath = database_path('migrations');
+        $hasPublishedMigration = false;
+        
+        if (is_dir($migrationsPath)) {
+            $files = glob($migrationsPath . '/*_create_footprints_table.php');
+            $hasPublishedMigration = !empty($files);
+        }
+
+        if (!$hasPublishedMigration) {
+            $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
+        }
 
         $router->aliasMiddleware('footprints', CaptureFootprintsMiddleware::class);
     }
