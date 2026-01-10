@@ -124,15 +124,16 @@ FOOTPRINTS_FILE_MIN_FREE_SPACE_MB=100
 
 Validation errors are logged as warnings but won't prevent the application from starting.
 
-#### Kafka Driver
-Requires the extension `ext-rdkafka`.
-```dotenv
 KAFKA_BROKERS=localhost:9092
 KAFKA_TOPIC=app_footprints
 KAFKA_CLIENT_ID=my-app-logger
 KAFKA_TIMEOUT_MS=1000
 KAFKA_MESSAGE_KEY=request_id
-```
+KAFKA_SASL_MECHANISM=SCRAM-SHA-256
+KAFKA_SECURITY_PROTOCOL=SASL_SSL
+KAFKA_SASL_USERNAME=your-username
+KAFKA_SASL_PASSWORD=your-password
+
 
 **Message Key Configuration:**
 - `KAFKA_MESSAGE_KEY`: Optional. Set to a field name (e.g., `request_id`) to use that field's value as the message key, or leave unset/null for no key.
@@ -202,6 +203,10 @@ KAFKA_TOPIC=app_footprints
 KAFKA_CLIENT_ID=my-app-logger
 KAFKA_TIMEOUT_MS=1000
 KAFKA_MESSAGE_KEY=request_id
+KAFKA_SASL_MECHANISM=SCRAM-SHA-256
+KAFKA_SECURITY_PROTOCOL=SASL_SSL
+KAFKA_SASL_USERNAME=your-username
+KAFKA_SASL_PASSWORD=your-password
 
 # Elasticsearch Driver (if using elasticsearch channel)
 ELASTICSEARCH_HOSTS=localhost:9200

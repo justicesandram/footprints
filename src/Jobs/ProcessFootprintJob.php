@@ -108,6 +108,14 @@ class ProcessFootprintJob implements ShouldQueue
         $conf->set('bootstrap.servers', $config['brokers']);
         $conf->set('socket.timeout.ms', (string)$config['timeout_ms']);
 
+        if (isset($config['sasl_mechanism'], $config['security_protocol'], $config['sasl_username'], $config['sasl_password']) &&
+            !empty($config['sasl_username']) && !empty($config['sasl_password'])) {
+            $conf->set('sasl.mechanism', $config['sasl_mechanism']);
+            $conf->set('security.protocol', $config['security_protocol']);
+            $conf->set('sasl.username', $config['sasl_username']);
+            $conf->set('sasl.password', $config['sasl_password']);
+        }
+
         $producer = new \RdKafka\Producer($conf);
         $topic = $producer->newTopic($config['topic']);
 

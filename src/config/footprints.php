@@ -76,6 +76,10 @@ return [
             'topic' => env('KAFKA_TOPIC', 'app_footprints'),
             'client_id' => env('KAFKA_CLIENT_ID', 'laravel_logger'),
             'timeout_ms' => env('KAFKA_TIMEOUT_MS', 1000),
+            'sasl_mechanism' => env('KAFKA_SASL_MECHANISM'),
+            'security_protocol' => env('KAFKA_SECURITY_PROTOCOL'),
+            'sasl_username' => env('KAFKA_SASL_USERNAME'),
+            'sasl_password' => env('KAFKA_SASL_PASSWORD'),
             // Message key: null (no key), string (field name from footprint), or callable
             // Set to null to disable message keys, or a field name like 'request_id'
             // For callable functions, set directly in config file (not via env):
