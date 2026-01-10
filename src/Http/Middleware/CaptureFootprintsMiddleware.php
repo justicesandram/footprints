@@ -12,8 +12,8 @@ final class CaptureFootprintsMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!defined('LARAVEL_START')) {
-            define('LARAVEL_START', microtime(true));
+        if (!\defined('LARAVEL_START')) {
+            \define('LARAVEL_START', microtime(true));
         }
 
         if (!$request->headers->has('X-Request-ID')) {
