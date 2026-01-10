@@ -76,11 +76,27 @@ return [
             'topic' => env('KAFKA_TOPIC', 'app_footprints'),
             'client_id' => env('KAFKA_CLIENT_ID', 'laravel_logger'),
             'timeout_ms' => env('KAFKA_TIMEOUT_MS', 1000),
+            // Message key: null (no key), string (field name from footprint), or callable
+            // Set to null to disable message keys, or a field name like 'request_id'
+            // For callable functions, set directly in config file (not via env):
+            // 'message_key' => function($footprint) { return $footprint['request_id']; }
+            'message_key' => env('KAFKA_MESSAGE_KEY', null),
         ],
 
         'elasticsearch' => [
             'hosts' => explode(',', env('ELASTICSEARCH_HOSTS', 'localhost:9200')),
             'index' => env('ELASTICSEARCH_INDEX', 'footprints_logs'),
+            // Authentication: username/password or API key (use one or the other)
+            'username' => env('ELASTICSEARCH_USERNAME', null),
+            'password' => env('ELASTICSEARCH_PASSWORD', null),
+            'api_key' => env('ELASTICSEARCH_API_KEY', null),
+            // Operation type: 'index' (default, allows updates) or 'create' (for datastreams, fails if exists)
+            'operation_type' => env('ELASTICSEARCH_OPERATION_TYPE', 'index'),
+            // Document ID: string (field name from footprint, default: 'request_id') or callable
+            // Set a field name like 'request_id' to use that field's value as document ID
+            // For callable functions, set directly in config file (not via env):
+            // 'document_id_field' => function($footprint) { return $footprint['request_id']; }
+            'document_id_field' => env('ELASTICSEARCH_DOCUMENT_ID_FIELD', 'request_id'),
         ],
     ],
 ];

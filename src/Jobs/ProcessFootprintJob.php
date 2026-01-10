@@ -10,6 +10,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use TNM\Footprints\Helpers\IdKeyGenerator;
 
 class ProcessFootprintJob implements ShouldQueue
 {
@@ -73,6 +74,7 @@ class ProcessFootprintJob implements ShouldQueue
             ->table($config['table_name'])
             ->insert([
                 'request_id' => $this->footprint['request_id'],
+                'service_name' => $this->footprint['service_name'] ?? config('footprints.service_name', config('app.name', 'laravel-app')),
                 'user_type' => $this->footprint['user_type'] ?? null,
                 'user_id' => $this->footprint['user_id'] ?? null,
                 'method' => $this->footprint['method'],
@@ -106,17 +108,28 @@ class ProcessFootprintJob implements ShouldQueue
         }
 
         $conf = new \RdKafka\Conf();
-        $conf->set('metafootprint.broker.list', $config['brokers']);
+        $conf->set('bootstrap.servers', $config['brokers']);
         $conf->set('socket.timeout.ms', (string)$config['timeout_ms']);
 
         $producer = new \RdKafka\Producer($conf);
         $topic = $producer->newTopic($config['topic']);
 
-        $topic->produce(
-            RD_KAFKA_PARTITION_UA,
-            0,
-            $this->safeJsonEncode($this->footprint)
-        );
+
+        $messageKey = null;
+        if (isset($config['message_key'])) {
+            try {
+                $messageKey = IdKeyGenerator::generateMessageKey($this->footprint, $config['message_key']);
+            } catch (\InvalidArgumentException $e) {
+                throw new \Exception("Kafka message key generation failed: " . $e->getMessage());
+            }
+        }
+
+        $messagePayload = $this->safeJsonEncode($this->footprint);
+        $partition = RD_KAFKA_PARTITION_UA;
+        $flags = 0;
+
+        // Produce message with optional key (pass null if no key)
+        $topic->produce($partition, $flags, $messagePayload, $messageKey);
 
         $producer->poll(0);
         $result = $producer->flush(1000);
@@ -141,15 +154,32 @@ class ProcessFootprintJob implements ShouldQueue
             throw new \Exception("Elasticsearch client not installed.");
         }
 
-        $client = \Elastic\Elasticsearch\ClientBuilder::create()
-            ->setHosts($config['hosts'])
-            ->build();
+        $builder = \Elastic\Elasticsearch\ClientBuilder::create()
+            ->setHosts($config['hosts']);
+
+
+        if (!empty($config['api_key'])) {
+            $builder->setApiKey($config['api_key']);
+        } elseif (!empty($config['username']) && !empty($config['password'])) {
+            $builder->setBasicAuthentication($config['username'], $config['password']);
+        }
+
+        $client = $builder->build();
+
+        $operationType = $config['operation_type'] ?? 'index';
+        if (!in_array($operationType, ['index', 'create'])) {
+            throw new \Exception("Invalid Elasticsearch operation type: {$operationType}. Must be 'index' or 'create'");
+        }
 
         $params = [
             'index' => $config['index'],
             'body' => $this->footprint
         ];
 
-        $client->index($params);
+        if ($operationType === 'create') {
+            $client->create($params);
+        } else {
+            $client->index($params);
+        }
     }
 }

@@ -131,13 +131,45 @@ KAFKA_BROKERS=localhost:9092
 KAFKA_TOPIC=app_footprints
 KAFKA_CLIENT_ID=my-app-logger
 KAFKA_TIMEOUT_MS=1000
+KAFKA_MESSAGE_KEY=request_id
 ```
+
+**Message Key Configuration:**
+- `KAFKA_MESSAGE_KEY`: Optional. Set to a field name (e.g., `request_id`) to use that field's value as the message key, or leave unset/null for no key.
+- For custom key generation functions, set directly in `config/footprints.php`:
+  ```php
+  'message_key' => function($footprint) {
+      return $footprint['service_name'] . '-' . $footprint['request_id'];
+  }
+  ```
+- Generated keys are validated to ensure they don't exceed 512 characters.
 
 #### Elasticsearch Driver
 ```dotenv
 ELASTICSEARCH_HOSTS=localhost:9200
 ELASTICSEARCH_INDEX=footprints_logs
+ELASTICSEARCH_USERNAME=elastic
+ELASTICSEARCH_PASSWORD=changeme
+ELASTICSEARCH_API_KEY=your-api-key-here
+ELASTICSEARCH_OPERATION_TYPE=index
+ELASTICSEARCH_DOCUMENT_ID_FIELD=request_id
 ```
+
+**Authentication:**
+- Use either `ELASTICSEARCH_USERNAME` + `ELASTICSEARCH_PASSWORD` OR `ELASTICSEARCH_API_KEY` (not both).
+
+**Operation Type:**
+- `ELASTICSEARCH_OPERATION_TYPE`: Set to `index` (default, allows document updates) or `create` (for datastreams, fails if document already exists).
+
+**Document ID:**
+- `ELASTICSEARCH_DOCUMENT_ID_FIELD`: Field name from footprint to use as document ID (default: `request_id`).
+- For custom ID generation functions, set directly in `config/footprints.php`:
+  ```php
+  'document_id_field' => function($footprint) {
+      return $footprint['service_name'] . '-' . $footprint['request_id'];
+  }
+  ```
+- Generated IDs are validated to ensure they don't exceed 512 characters.
 
 ### Environment Variables Overview
 
@@ -169,10 +201,16 @@ KAFKA_BROKERS=localhost:9092
 KAFKA_TOPIC=app_footprints
 KAFKA_CLIENT_ID=my-app-logger
 KAFKA_TIMEOUT_MS=1000
+KAFKA_MESSAGE_KEY=request_id
 
 # Elasticsearch Driver (if using elasticsearch channel)
 ELASTICSEARCH_HOSTS=localhost:9200
 ELASTICSEARCH_INDEX=footprints_logs
+ELASTICSEARCH_USERNAME=elastic
+ELASTICSEARCH_PASSWORD=changeme
+ELASTICSEARCH_API_KEY=your-api-key-here
+ELASTICSEARCH_OPERATION_TYPE=index
+ELASTICSEARCH_DOCUMENT_ID_FIELD=request_id
 ```
 
 ---
@@ -221,6 +259,7 @@ The `footprints` table (or JSON object) contains:
 | Field | Description |
 |-------|-------------|
 | `request_id` | Unique UUID for the request (Header: `X-Request-ID`). |
+| `service_name` | Name of the service/application (from `FOOTPRINT_SERVICE_NAME` or `APP_NAME`). |
 | `user_id` | Authenticated User ID (if any). |
 | `method` | HTTP Method (GET, POST, etc.). |
 | `uri` | The request path (e.g., `/api/users`). |
@@ -229,6 +268,7 @@ The `footprints` table (or JSON object) contains:
 | `duration_ms` | Execution time in milliseconds. |
 | `request_body` | JSON payload (sensitive fields redacted). |
 | `response_body` | Response content (truncated/handled if binary). |
+| `environment` | Application environment (e.g., `local`, `production`). |
 
 ---
 

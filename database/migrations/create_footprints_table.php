@@ -16,6 +16,7 @@ return new class extends Migration {
         Schema::create($config['table_name'], function (Blueprint $table) {
             $table->id();
             $table->uuid('request_id')->index();
+            $table->string('service_name')->index();
             $table->string('user_type')->nullable();
             $table->unsignedBigInteger('user_id')->nullable();
             $table->string('method');
