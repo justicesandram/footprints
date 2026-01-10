@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d77758f7a13006047eb757d7b610a46e",
+    "content-hash": "7fea2c8787b1d367362d4836a803b32a",
     "packages": [
         {
             "name": "brick/math",
@@ -8625,5 +8625,5 @@
         "ext-rdkafka": "*"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }

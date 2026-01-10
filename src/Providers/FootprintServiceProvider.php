@@ -15,10 +15,10 @@ class FootprintServiceProvider extends ServiceProvider
         ], 'footprints-config');
 
         $this->publishes([
-            __DIR__ . '/../database/migrations' => database_path('migrations'),
+            __DIR__ . '/../../database/migrations' => database_path('migrations'),
         ], 'footprints-migrations');
 
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
 
         $router->aliasMiddleware('footprints', CaptureFootprintsMiddleware::class);
     }
