@@ -18,10 +18,23 @@ A robust, asynchronous request/response logging package for Laravel applications
    composer require tnmdev/footprints
    ```
 
-2. **Publish Configuration & Migrations:**
+2. **Publish Configuration:**
 
    ```bash
    php artisan vendor:publish --tag=footprints-config
+   ```
+
+3. **Publish Migrations (Optional):**
+
+   By default, migrations are auto-loaded from the package. If you want to copy them to your `database/migrations` directory for customization:
+
+   ```bash
+   php artisan vendor:publish --tag=footprints-migrations
+   ```
+
+4. **Run Migrations:**
+
+   ```bash
    php artisan migrate
    ```
    *This will create the `footprints` table if you plan to use the database driver.*
