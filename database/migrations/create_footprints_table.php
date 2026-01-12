@@ -4,42 +4,39 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateFootprintsTable extends Migration
-{
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
-    public function up()
+return new class extends Migration {
+    public function up(): void
     {
-        Schema::create('footprints', function (Blueprint $table) {
+        $config = config('footprints.drivers.database');
+
+        if (!$config) {
+            return;
+        }
+
+        Schema::create($config['table_name'], function (Blueprint $table) {
             $table->id();
+            $table->uuid('request_id')->index();
+            $table->string('service_name')->index();
             $table->string('user_type')->nullable();
             $table->unsignedBigInteger('user_id')->nullable();
-            $table->string('endpoint');
-            $table->string('uri');
             $table->string('method');
+            $table->string('uri');
+            $table->string('endpoint');
             $table->ipAddress()->nullable();
-            $table->text('content')->nullable();
-            $table->text('request')->nullable();
-            $table->text('response')->nullable();
-            $table->integer('milliseconds');
-            $table->integer('status');
+            $table->integer('status_code');
+            $table->float('duration_ms');
             $table->boolean('success');
-            $table->string('message')->nullable();
+            $table->string('environment', 50)->nullable();
+            $table->longText('request_body')->nullable();
+            $table->longText('response_body')->nullable();
+            $table->json('request_headers')->nullable();
+            $table->timestamp('requested_at');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
-    public function down()
+    public function down(): void
     {
-        Schema::dropIfExists('footprints');
+        Schema::dropIfExists(config('footprints.drivers.database.table_name', 'footprints'));
     }
-}
-
+};
