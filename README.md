@@ -6,7 +6,7 @@ interaction with your API or web application without impacting performance.
 ## Features
 
 - **Asynchronous Processing**: Uses Laravel Jobs to offload logging, ensuring zero latency impact on user requests.
-- **Multiple Channels**: Log to Database, File, Kafka, or Elasticsearch.
+- **Multiple Channels**: Log to Database, Kafka, or Elasticsearch.
 - **Sensitive Data Masking**: Automatically redact passwords, credit cards, and other sensitive fields.
 - **Request ID Tracking**: Generates and propagates unique `X-Request-ID` headers for tracing across microservices.
 
@@ -65,9 +65,9 @@ FOOTPRINTS_ENABLED=true
 
 FOOTPRINT_SERVICE_NAME=my-laravel-app
 
-# Where to log? Options: database, file, kafka, elasticsearch
+# Where to log? Options: database, kafka, elasticsearch
 # Comma-separated for multiple channels. Order matters here
-FOOTPRINTS_CHANNELS=database,file
+FOOTPRINTS_CHANNELS=database,kafka
 ```
 
 ### Sensitive Data Masking
@@ -131,27 +131,6 @@ Uses your default Laravel database connection by default.
 DB_CONNECTION=mysql
 FOOTPRINTS_TABLE_NAME=footprints
 ```
-
-### File Driver
-
-Logs are written to the specified file path. The directory will be created if it doesn't exist, and the package will
-validate file accessibility and disk space during service discovery.
-
-```env
-FOOTPRINTS_FILE_PATH=/var/log/myapp/footprints.log
-FOOTPRINTS_FILE_MIN_FREE_SPACE_MB=100
-```
-
-- `FOOTPRINTS_FILE_PATH`: Full path to the log file (default: `storage/logs/footprints.log`)
-- `FOOTPRINTS_FILE_MIN_FREE_SPACE_MB`: Minimum free disk space required in MB (default: `100MB`)
-
-**Note**: The package automatically validates:
-
-- Directory exists or can be created
-- Directory/file is writable
-- Sufficient disk space is available
-
-Validation errors are logged as warnings but won't prevent the application from starting.
 
 ### Kafka Driver
 
@@ -259,7 +238,7 @@ Here's a complete overview of all environment variables the package expects:
 # Basic Configuration
 FOOTPRINTS_ENABLED=true
 FOOTPRINT_SERVICE_NAME=my-laravel-app
-FOOTPRINTS_CHANNELS=database,file
+FOOTPRINTS_CHANNELS=database,kafka
 
 # Sensitive Data Masking
 FOOTPRINTS_HIDDEN_FIELDS=password,password_confirmation,credit_card,api_key,secret,pin
@@ -271,10 +250,6 @@ FOOTPRINTS_QUEUE_NAME=logging
 # Database Driver (if using database channel)
 DB_CONNECTION=mysql
 FOOTPRINTS_TABLE_NAME=footprints
-
-# File Driver (if using file channel)
-FOOTPRINTS_FILE_PATH=/var/log/myapp/footprints.log
-FOOTPRINTS_FILE_MIN_FREE_SPACE_MB=100
 
 # Kafka Driver (if using kafka channel)
 KAFKA_BROKERS=localhost:9092

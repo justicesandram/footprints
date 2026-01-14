@@ -55,7 +55,7 @@ final class CaptureFootprintsMiddleware
     {
         return [
             'request_id' => $id,
-            'service_name' => config('footprints.service_name', config('app.name', 'laravel-app')),
+            'service_name' => config('footprints.service_name', config('app.name', 'unnamed-laravel-app')),
             'user_type' => $request->user() ? get_class($request->user()) : null,
             'user_id' => $request->user() ? $request->user()->getAuthIdentifier() : null,
             'method' => $request->method(),
