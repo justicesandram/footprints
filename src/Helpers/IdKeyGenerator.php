@@ -2,6 +2,8 @@
 
 namespace TNM\Footprints\Helpers;
 
+use InvalidArgumentException;
+
 class IdKeyGenerator
 {
     /**
@@ -22,7 +24,7 @@ class IdKeyGenerator
             // Use field from footprint
             $id = $footprint[$idConfig] ?? null;
             if ($id === null) {
-                throw new \InvalidArgumentException("Field '{$idConfig}' not found in footprint data");
+                throw new InvalidArgumentException("Field '{$idConfig}' not found in footprint data");
             }
             return (string)$id;
         }
@@ -30,14 +32,14 @@ class IdKeyGenerator
         if (is_callable($idConfig)) {
             $id = call_user_func($idConfig, $footprint);
             if (!is_string($id) && !is_numeric($id)) {
-                throw new \InvalidArgumentException("ID generation function must return a string or numeric value");
+                throw new InvalidArgumentException("ID generation function must return a string or numeric value");
             }
             $id = (string)$id;
             self::validateLength($id, 'document ID');
             return $id;
         }
 
-        throw new \InvalidArgumentException("Document ID config must be a string (field name) or callable");
+        throw new InvalidArgumentException("Document ID config must be a string (field name) or callable");
     }
 
     /**
@@ -67,14 +69,14 @@ class IdKeyGenerator
                 return null;
             }
             if (!is_string($key) && !is_numeric($key)) {
-                throw new \InvalidArgumentException("Key generation function must return a string, numeric value, or null");
+                throw new InvalidArgumentException("Key generation function must return a string, numeric value, or null");
             }
             $key = (string)$key;
             self::validateLength($key, 'message key');
             return $key;
         }
 
-        throw new \InvalidArgumentException("Message key config must be null, a string (field name), or callable");
+        throw new InvalidArgumentException("Message key config must be null, a string (field name), or callable");
     }
 
     /**
@@ -83,12 +85,12 @@ class IdKeyGenerator
      * @param string $value
      * @param string $type
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected static function validateLength(string $value, string $type): void
     {
         if (strlen($value) > self::MAX_LENGTH) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 "Generated {$type} exceeds maximum length of " . self::MAX_LENGTH . " characters"
             );
         }

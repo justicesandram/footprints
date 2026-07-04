@@ -18,7 +18,7 @@ class KafkaChannel extends BaseChannel
     public function log(array $footprint, array $config): void
     {
         if (!extension_loaded('rdkafka') || !class_exists(\RdKafka\Producer::class)) {
-            throw new Exception("RdKafka extension not installed or enabled.");
+            throw new Exception("RdKafka extension not installed nor enabled.");
         }
 
         $this->ensureConnectivity($config['brokers']);
