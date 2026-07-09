@@ -2,6 +2,8 @@
 
 namespace TNM\Footprints\Tests\Unit;
 
+use Exception;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
@@ -10,11 +12,22 @@ use TNM\Footprints\Tests\TestCase;
 
 class ProcessFootprintJobTest extends TestCase
 {
-    protected $footprintData;
+    protected array $footprintData;
 
     protected function setUp(): void
     {
         parent::setUp();
+
+        $logDirectory = storage_path('logs');
+        if (!File::exists($logDirectory)) {
+            File::makeDirectory($logDirectory, 0755, true);
+        }
+
+        $this->app['config']->set('logging.channels.footprints', [
+            'driver' => 'single',
+            'path' => storage_path('logs/footprints.log'),
+            'level' => 'debug',
+        ]);
 
         $this->footprintData = [
             'request_id' => 'uuid-1234',
@@ -49,12 +62,15 @@ class ProcessFootprintJobTest extends TestCase
         ]);
     }
 
+    /**
+     * @throws FileNotFoundException
+     */
     public function test_it_logs_to_file()
     {
         $this->app['config']->set('footprints.channels', ['file']);
-        
+
         $logPath = storage_path('logs/footprints.log');
-        
+
         if (File::exists($logPath)) {
             File::delete($logPath);
         }
@@ -68,10 +84,13 @@ class ProcessFootprintJobTest extends TestCase
         $this->assertStringContainsString('api\/test', $content);
     }
 
+    /**
+     * @throws FileNotFoundException
+     */
     public function test_it_handles_multiple_channels()
     {
         $this->app['config']->set('footprints.channels', ['database', 'file']);
-        
+
         $logPath = storage_path('logs/footprints.log');
         if (File::exists($logPath)) {
             File::delete($logPath);
@@ -92,7 +111,7 @@ class ProcessFootprintJobTest extends TestCase
     public function test_it_handles_string_channel_config()
     {
         $this->app['config']->set('footprints.channels', 'database,file');
-        
+
         $logPath = storage_path('logs/footprints.log');
         if (File::exists($logPath)) {
             File::delete($logPath);
@@ -108,37 +127,38 @@ class ProcessFootprintJobTest extends TestCase
     public function test_safe_json_encode_handles_binary_data()
     {
         $this->app['config']->set('footprints.channels', ['database']);
-        
-        // Create a string with invalid UTF-8 sequence
+
         $invalidUtf8 = "\xB1\x31";
-        
+
         $data = $this->footprintData;
         $data['request_body'] = ['bad_string' => $invalidUtf8];
 
-        $job = new ProcessFootprintJob($data);
-        $job->handle();
+        (new ProcessFootprintJob($data))->handle();
 
         $this->assertDatabaseHas('footprints', [
             'request_id' => 'uuid-1234',
         ]);
-        
+
         $record = DB::table('footprints')->where('request_id', 'uuid-1234')->first();
-        // Since we use JSON_INVALID_UTF8_SUBSTITUTE, it shouldn't crash and should substitute
+
         $this->assertStringContainsString('bad_string', $record->request_body);
     }
-    
+
+    /**
+     * @throws FileNotFoundException
+     */
     public function test_failed_job_triggers_fallback_log()
     {
-        Log::shouldReceive('warning')->once();
-        
-        $job = new ProcessFootprintJob($this->footprintData);
-        $exception = new \Exception("Something went wrong");
-        
-        $job->failed($exception);
-        
+        Log::partialMock()->shouldReceive('warning')->once();
+
+        (new ProcessFootprintJob($this->footprintData))->failed(new Exception("Something went wrong"));
+
         $logPath = storage_path('logs/footprints.log');
+
+        $this->assertFileExists($logPath);
+
         $content = File::get($logPath);
-        
+
         $this->assertStringContainsString('Something went wrong', $content);
         $this->assertStringContainsString('uuid-1234', $content);
     }

@@ -13,6 +13,7 @@ use Throwable;
 use TNM\Footprints\Channels\ChannelInterface;
 use TNM\Footprints\Channels\DatabaseChannel;
 use TNM\Footprints\Channels\ElasticsearchChannel;
+use TNM\Footprints\Channels\FileChannel;
 use TNM\Footprints\Channels\KafkaChannel;
 
 class ProcessFootprintJob implements ShouldQueue
@@ -31,6 +32,12 @@ class ProcessFootprintJob implements ShouldQueue
     private function fallback(string $reason): void
     {
         Log::warning("[Footprint Package] Failed to log footprint: $reason");
+
+        $fileConfig = config('footprints.drivers.file', []);
+        $path = $fileConfig['path'] ?? storage_path('logs/footprints.log');
+        $entry = json_encode(['error' => $reason, 'footprint' => $this->footprint]) . PHP_EOL;
+
+        file_put_contents($path, $entry, FILE_APPEND);
     }
 
     public function handle(): void
@@ -65,6 +72,7 @@ class ProcessFootprintJob implements ShouldQueue
     {
         return match (strtolower($channel)) {
             'database' => new DatabaseChannel(),
+            'file' => new FileChannel(),
             'kafka' => new KafkaChannel(),
             'elasticsearch' => new ElasticsearchChannel(),
             default => throw new Exception("Unknown channel: $channel"),
