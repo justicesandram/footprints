@@ -6,9 +6,6 @@ use Exception;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 use function Laravel\Prompts\error;
-use function TNM\Utils\checkBrokers;
-use function TNM\Utils\getDefaultEventKey;
-use function TNM\Utils\validateConfig;
 
 class KafkaLog
 {

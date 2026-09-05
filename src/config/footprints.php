@@ -17,11 +17,11 @@ return [
         'topic' => env('FOOTPRINTS_KAFKA_TOPIC', 'application_footprints'),
         'client_id' => env('FOOTPRINTS_KAFKA_CLIENT_ID', 'laravel_logger'),
         'timeout_ms' => env('FOOTPRINTS_KAFKA_TIMEOUT_MS', 1000),
-        'sasl_mechanism' => env('FOOTPRINTS_KAFKA_SASL_MECHANISM', null),
-        'security_protocol' => env('FOOTPRINTS_KAFKA_SECURITY_PROTOCOL', null),
-        'sasl_username' => env('FOOTPRINTS_KAFKA_SASL_USERNAME', null),
-        'sasl_password' => env('FOOTPRINTS_KAFKA_SASL_PASSWORD', null),
+        'sasl_mechanism' => env('FOOTPRINTS_KAFKA_SASL_MECHANISM'),
+        'security_protocol' => env('FOOTPRINTS_KAFKA_SECURITY_PROTOCOL'),
+        'sasl_username' => env('FOOTPRINTS_KAFKA_SASL_USERNAME'),
+        'sasl_password' => env('FOOTPRINTS_KAFKA_SASL_PASSWORD'),
         // e.g., 'message_key_func' => function($footprint) { return $footprint['request_id']; }
-        'message_key_func' => env('FOOTPRINTS_KAFKA_MESSAGE_KEY_FUNC', "TNM\\Footprints\\Utils\\getDefaultEventKey")(...),
+        'message_key_func' => env('FOOTPRINTS_KAFKA_MESSAGE_KEY_FUNC', 'TNM\Footprints\Utils\getDefaultEventKey')(...),
     ]
 ];
