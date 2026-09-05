@@ -1,6 +1,6 @@
 <?php
 
-namespace TNM\Utils;
+namespace TNM\Footprints\Utils;
 
 use Carbon\Carbon;
 use Exception;

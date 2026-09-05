@@ -22,6 +22,6 @@ return [
         'sasl_username' => env('FOOTPRINTS_KAFKA_SASL_USERNAME', null),
         'sasl_password' => env('FOOTPRINTS_KAFKA_SASL_PASSWORD', null),
         // e.g., 'message_key_func' => function($footprint) { return $footprint['request_id']; }
-        'message_key_func' => env('FOOTPRINTS_KAFKA_MESSAGE_KEY_FUNC', "TNM\\Utils\\getDefaultEventKey")(...),
+        'message_key_func' => env('FOOTPRINTS_KAFKA_MESSAGE_KEY_FUNC', "TNM\\Footprints\\Utils\\getDefaultEventKey")(...),
     ]
 ];
