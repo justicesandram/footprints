@@ -39,7 +39,8 @@ class FootprintWorker implements ShouldQueue
     }
 
     private function logToDatabase(string $error): void
-    {     Log::debug("Logging footprint to database now...");
+    {
+        Log::debug("Logging footprint to database now...");
 
         DB::connection()->table(config("footprints.table_name"))->insert([
             'request_id' => $this->footprint['request_id'],
@@ -51,13 +52,23 @@ class FootprintWorker implements ShouldQueue
             'request_url' => $this->footprint['request_url'],
             'request_time' => $this->footprint['request_time'],
 
-            'request_headers' => $this->footprint['request_headers'],
-            'request_body' => $this->footprint['request_body'],
+            'request_headers' => json_encode(
+                $this->footprint['request_headers'],
+                JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+            ),
+            'request_body' => json_encode(
+                $this->footprint['request_body'],
+                JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+            ),
 
             'response_status_code' => $this->footprint['response_status_code'],
             'response_success' => $this->footprint['response_success'],
 
-            'response_headers' => $this->footprint['response_headers'],
+            'response_headers' => json_encode(
+                $this->footprint['response_headers'],
+                JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+            ),
+
             'response_body' => $this->footprint['response_body'],
 
             'duration_ms' => $this->footprint['duration_ms'],
@@ -66,11 +77,11 @@ class FootprintWorker implements ShouldQueue
             'host_ip' => $this->footprint['host_ip'],
             'host_name' => $this->footprint['host_name'],
 
-
             'user_id' => $this->footprint['user_id'],
             'user_type' => $this->footprint['user_type'],
 
             'exception_message' => $this->footprint['exception_message'] ?? $error,
         ]);
     }
+
 }
