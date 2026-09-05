@@ -27,7 +27,7 @@
     "illuminate/routing": "^9.0|^10.0|^11.0|^12.0|^13.0"
   },
   "suggest": {
-    "ext-rdkafka": "Required for Kafka logging channel"
+    "ext-rdkafka": "Required for Kafka footprint event publishing."
   },
   "require-dev": {
     "orchestra/testbench": "^7.0|^8.0|^9.0|^10.0",
