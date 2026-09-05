@@ -116,13 +116,16 @@ class KafkaLog
         $topic = $producer->newTopic($this->config['topic']);
 
         try {
-            $messageKey = $this->config['message_key']($footprint);
+            $messageKey = $this->config['message_key_func']($footprint);
         } catch (Throwable $e) {
             Log::debug("User supplied message key func erred: {$e->getMessage()}");
             $messageKey = getDefaultEventKey($footprint);
         }
 
+        $footprint["agent"] = "php-laravel";
+
         $message = $this->safeJsonEncode($footprint);
+        
         $partition = RD_KAFKA_PARTITION_UA;
         $flags = 0;
 
