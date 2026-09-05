@@ -6,7 +6,10 @@
   "autoload": {
     "psr-4": {
       "TNM\\Footprints\\": "src/"
-    }
+    },
+    "files": [
+      "src/Utils/Utils.php"
+    ]
   },
   "authors": [
     {
