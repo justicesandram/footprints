@@ -133,7 +133,7 @@ class KafkaLog
 
         $producer->poll(0);
 
-        $result = $producer->flush(1000);
+        $result = $producer->flush(30000);
 
         if ($result !== RD_KAFKA_RESP_ERR_NO_ERROR) {
             Logger:
