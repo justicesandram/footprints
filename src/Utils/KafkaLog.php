@@ -125,7 +125,7 @@ class KafkaLog
         $footprint["agent"] = "php-laravel";
 
         $message = $this->safeJsonEncode($footprint);
-        
+
         $partition = RD_KAFKA_PARTITION_UA;
         $flags = 0;
 
